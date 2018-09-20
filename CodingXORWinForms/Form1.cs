@@ -12,26 +12,35 @@ using System.Windows.Forms;
 
 namespace CodingXORWinForms
 {
-    //public delegate void ProgressBarsDel(int num);
-    //public delegate bool ProcessEnd();
     public partial class FormXor : Form
     {
+        System.Threading.Timer timer;
         public event Action<int> ProgresBarsChange;
 
         bool EndProcess;
         bool CancelProcess;
+
+        Data data;
 
         public FormXor()
         {
             InitializeComponent();
             txbWay.ReadOnly = true;
 
-            ProgresBarsChange += ProcessChanged;   //Обработка прогресс бара
+            ProgresBarsChange += ProcessChanged;   //Событие Обработка прогресс бара
+            progrBar.MouseMove += ProgrBar_MouseMove;
 
             this.FormBorderStyle = FormBorderStyle.FixedSingle;
 
             bthCode.Enabled = false;
             btnUncode.Enabled = false;
+            data = new Data();
+            toolTip1.ToolTipTitle = "speed\n";
+        }
+
+        private void ProgrBar_MouseMove(object sender, MouseEventArgs e)
+        {
+            toolTip1.Show($"{data.speed} Kb/sec", progrBar);
         }
 
         private bool ProcessEnded()
@@ -52,8 +61,6 @@ namespace CodingXORWinForms
                     txbWay.Text = f.FileName;
                 }
 
-               // if(f.FileName!="")
-               //// ReadFile();
             }
         }
 
@@ -79,8 +86,9 @@ namespace CodingXORWinForms
 
 
 
-        private void CodeFile()
+        private void CodeFile(object data)
         {
+            Data d = data as Data;
             string myText = ReadFile();
 
             byte[] txt = Encoding.Default.GetBytes(myText);
@@ -89,16 +97,20 @@ namespace CodingXORWinForms
 
             progrBar.Maximum = txt.Length-1;
             progrBar.Step = 1;
-
+            int size = txt.Length*4;  //байт
 
             for (int i = 0; i < txt.Length; i++)
             {
                 if (CancelProcess != true)
                 {
+                    DateTime time1 = DateTime.Now;
                     res[i] = (byte)(txt[i] ^ myKey[i % myKey.Length]);
 
-                    Thread.Sleep(50);
+                    Thread.Sleep(500);
                     ProgresBarsChange(i);
+                    DateTime time2 = DateTime.Now;
+                    TimeSpan timeSpan = time2 - time1;
+                    d.speed = timeSpan.Milliseconds * (float)size *1f;   //сек*разм/1000     mc*разм
                 }
                 else
                     break;
@@ -112,8 +124,9 @@ namespace CodingXORWinForms
             CancelProcess = false;
         }
 
-        private void UnCode()
+        private void UnCode(object data)
         {
+            Data d = data as Data;
             string line = ReadFile();
 
             byte[] res = new byte[line.Length];
@@ -122,15 +135,19 @@ namespace CodingXORWinForms
 
             progrBar.Maximum = line.Length-3;
             progrBar.Step = 1;
-
+            int size = line.Length*4;
             for (int i = 0; i < line.Length-2; i++)      // убираем символу конца строки -2
             {
                 if (CancelProcess != true)
                 {
+                    DateTime time1 = DateTime.Now;
                     res[i] = (byte)(txt[i] ^ key[i % txbKey.Text.Length]);
 
-                    Thread.Sleep(50);
+                    Thread.Sleep(500);
                     ProgresBarsChange(i);
+                    DateTime time2 = DateTime.Now;
+                    TimeSpan timeSpan = time2 - time1;
+                    d.speed = timeSpan.Milliseconds * (float)size *1f;
                 }
                 else
                     break;
@@ -146,14 +163,14 @@ namespace CodingXORWinForms
 
         private void bthCode_Click(object sender, EventArgs e)
         {
-            Thread threadProgres = new Thread(CodeFile);
-            threadProgres.Start();
+            Thread threadProgres = new Thread(new ParameterizedThreadStart(CodeFile));
+            threadProgres.Start(data);
         }
 
         private void btnUncode_Click(object sender, EventArgs e)
         {
-            Thread threadProgres = new Thread(UnCode);
-            threadProgres.Start();
+            Thread threadProgres = new Thread(new ParameterizedThreadStart(UnCode));
+            threadProgres.Start(data);
         }
 
 

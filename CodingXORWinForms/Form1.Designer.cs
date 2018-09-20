@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            this.components = new System.ComponentModel.Container();
             this.txbWay = new System.Windows.Forms.TextBox();
             this.label1 = new System.Windows.Forms.Label();
             this.btnFind = new System.Windows.Forms.Button();
@@ -38,6 +39,7 @@
             this.btnUncode = new System.Windows.Forms.Button();
             this.progrBar = new System.Windows.Forms.ProgressBar();
             this.btnCancel = new System.Windows.Forms.Button();
+            this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
             this.SuspendLayout();
             // 
             // txbWay
@@ -168,6 +170,7 @@
         private System.Windows.Forms.Button btnUncode;
         private System.Windows.Forms.ProgressBar progrBar;
         private System.Windows.Forms.Button btnCancel;
+        private System.Windows.Forms.ToolTip toolTip1;
     }
 }
 
